@@ -1,16 +1,28 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WildGather Kids — Episode 1</title><link rel="stylesheet" href="style.css"></head>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WildGather Kids — Episode 1</title><link rel="stylesheet" href="style.css">
+</head>
 <body>
 <main class="app">
-<header><div><div class="brand">WILDGATHER KIDS</div><h1>Episode 1: The Mysterious Footprints</h1><p class="sub">A 60-second animated wilderness mystery</p></div><button id="playTop" class="play">▶ Play Episode</button></header>
-<section class="stage"><div id="scene" class="scene">
-<div class="sky"></div><div class="sun"></div><div class="mountains"></div><div class="forest"></div><div class="mist"></div><div class="path"></div><div id="props"></div>
-<div id="benji" class="person benji"><i class="head"></i><i class="body"></i><i class="arm a1"></i><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i></div>
-<div id="maya" class="person maya"><i class="head"></i><i class="body"></i><i class="arm a1"></i><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i></div>
-<div id="tracks" class="tracks"></div><div id="raccoon" class="raccoon"><i></i></div>
-<div id="titleCard" class="titleCard">THE MYSTERIOUS<br>FOOTPRINTS</div><div id="caption" class="caption"></div>
-</div><div class="controls"><button id="prev">←</button><div><b id="sceneName"></b><span id="timer">0:00 / 1:00</span></div><button id="next">→</button></div></section>
+<header>
+  <div><div class="brand">WILDGATHER KIDS</div><h1>Episode 1: The Mysterious Footprints</h1><p class="sub">A fast, funny wilderness mystery with a real nature tip in every scene.</p></div>
+  <button id="playTop" class="play">▶ Play Episode</button>
+</header>
+<section class="stage">
+  <div id="scene" class="scene">
+    <div class="sky"></div><div class="sun"></div><div class="mountains"></div><div class="forest"></div><div class="mist"></div><div class="path"></div>
+    <div class="cloud c1"></div><div class="cloud c2"></div><div class="bird b1">⌁</div><div class="bird b2">⌁</div>
+    <div id="props"></div>
+    <div id="benji" class="person benji"><i class="head"></i><i class="body"></i><i class="arm a1"></i><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i></div>
+    <div id="maya" class="person maya"><i class="head"></i><i class="body"></i><i class="arm a1"></i><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i></div>
+    <div id="tracks" class="tracks"></div><div id="raccoon" class="raccoon"><i></i></div>
+    <div id="fact" class="fact"><span>🌲 WILD TIP</span><b></b></div>
+    <div id="titleCard" class="titleCard">THE MYSTERIOUS<br>FOOTPRINTS</div><div id="caption" class="caption"></div>
+  </div>
+  <div class="controls"><button id="prev">←</button><div><b id="sceneName"></b><span id="timer">0:00 / 1:00</span></div><button id="next">→</button></div>
+</section>
 <section class="story"><h2>Episode</h2><div id="cards" class="cards"></div></section>
-<section class="script"><h2>Benji's narration</h2><p id="voice"></p><small>Tap Play to hear the narration using your phone's built-in voice.</small></section>
+<section class="script"><h2>Benji's narration</h2><p id="voice"></p><small>Play the episode to hear Benji's narration and watch the nature tips pop up.</small></section>
 </main><script src="app.js"></script></body></html>
