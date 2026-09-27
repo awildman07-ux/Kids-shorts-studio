@@ -1,0 +1,29 @@
+{
+  "title": "The Mysterious Footprints",
+  "fps": 24,
+  "resolution": [1080, 1920],
+  "characters": {
+    "Poppy": {"voice": "af_bella", "speed": 1.08, "color": "FFD447"},
+    "Luke": {"voice": "am_michael", "speed": 1.00, "color": "348BD4"},
+    "Lydia": {"voice": "af_heart", "speed": 0.98, "color": "EE6EAA"},
+    "Benji": {"voice": "am_adam", "speed": 0.90, "color": "805536"}
+  },
+  "lines": [
+    {"speaker":"Poppy","text":"Whoa! Whose footprint is bigger than my boot?","action":"point_track"},
+    {"speaker":"Lydia","text":"Four round toes and one wide pad.","action":"kneel_inspect"},
+    {"speaker":"Luke","text":"Let’s follow the clues—but quietly, and together.","action":"gesture_trail"},
+    {"speaker":"Poppy","text":"Will you help us count the tracks?","action":"look_camera"},
+    {"speaker":"Poppy","text":"One, two, three, four!","action":"walk_and_count"},
+    {"speaker":"Lydia","text":"Tracks, a broken twig, and soft brown fur. What animal could it be?","action":"show_clues"},
+    {"speaker":"Luke","text":"Maybe a giant squirrel!","action":"imagine_squirrel"},
+    {"speaker":"Poppy","text":"Or a dancing moose!","action":"imagine_moose"},
+    {"speaker":"Lydia","text":"Funny guesses—but look at the claw marks.","action":"point_claws"},
+    {"speaker":"Luke","text":"Something is behind those berry bushes.","action":"step_back"},
+    {"speaker":"Poppy","text":"I see two fuzzy ears!","action":"point_bush"},
+    {"speaker":"Luke","text":"It’s Benji the bear!","action":"bear_reveal"},
+    {"speaker":"Benji","text":"Hi, explorers. I followed the sweet berry smell—and left clues all the way here.","action":"bear_wave"},
+    {"speaker":"Lydia","text":"When we see a wild animal, we stay calm, give it space, and tell a grown-up.","action":"safe_distance"},
+    {"speaker":"Poppy","text":"Mystery solved! What do you think we’ll find next?","action":"find_feather"}
+  ]
+}
+
