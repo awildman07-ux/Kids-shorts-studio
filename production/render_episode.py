@@ -109,6 +109,7 @@ def main():
     for i,line in enumerate(t["lines"]):s.sequence_editor.sequences.new_sound(f"voice{i}",line["audio"],1,int(line["start"]*fps)+1)
     bpy.ops.object.light_add(type="SUN",location=(4,-4,12));bpy.context.object.data.energy=2.2
     bpy.ops.object.light_add(type="AREA",location=(-4,-4,9));bpy.context.object.data.energy=900;bpy.context.object.data.size=7
+    if s.world is None:s.world=bpy.data.worlds.new("Episode World")
     s.world.color=(.16,.43,.7);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=1.3
     s.render.resolution_x,s.render.resolution_y=ep.get("resolution",[1080,1920]);s.render.resolution_percentage=50;s.render.fps=fps;s.frame_start=1;s.frame_end=int(t["duration"]*fps)
     s.render.image_settings.file_format="FFMPEG";s.render.ffmpeg.format="MPEG4";s.render.ffmpeg.codec="H264";s.render.ffmpeg.audio_codec="AAC"
