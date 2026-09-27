@@ -5,12 +5,17 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/render-episode.yml'
+      - 'production/**'
   workflow_dispatch:
     inputs:
       episode:
         description: Episode JSON filename
         required: true
         default: episode-01.json
+
+concurrency:
+  group: full-episode-render
+  cancel-in-progress: true
 
 permissions:
   contents: read
