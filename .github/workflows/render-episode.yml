@@ -1,6 +1,10 @@
 name: Render Kids Episode
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/render-episode.yml'
   workflow_dispatch:
     inputs:
       episode:
@@ -15,13 +19,15 @@ jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 330
+    env:
+      EPISODE_FILE: ${{ inputs.episode || 'episode-01.json' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install free render tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender ffmpeg espeak-ng libsndfile1
+          sudo apt-get install -y blender ffmpeg espeak-ng libsndfile1 libegl1 libgl1 libglx-mesa0 libx11-6 libxi6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,10 +38,10 @@ jobs:
         run: pip install kokoro soundfile numpy
 
       - name: Generate character voices
-        run: python production/generate_voices.py "production/${{ inputs.episode }}"
+        run: python production/generate_voices.py "production/$EPISODE_FILE"
 
       - name: Build and render episode
-        run: blender --background --python production/render_episode.py -- "production/${{ inputs.episode }}"
+        run: blender --background --python production/render_episode.py -- "production/$EPISODE_FILE"
 
       - name: Verify Android MP4
         run: ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 output/episode.mp4
@@ -46,4 +52,3 @@ jobs:
           name: little-wild-adventures-episode
           path: output/episode.mp4
           retention-days: 30
-
