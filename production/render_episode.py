@@ -33,7 +33,8 @@ def pivot(n,p,parent):
 
 def child(name,x,y,shirt,hair,style,skin,dark):
     root=bpy.data.objects.new(name,None);bpy.context.collection.objects.link(root);root.location=(x,y,0)
-    sm=M(name+" shirt",shirt); hm=M(name+" hair",hair); pants=M(name+" pants",(.12,.28,.48))
+    sm=M(name+" shirt",shirt); hm=M(name+" hair",hair)
+    pants=M(name+" pants",{"swept":(.16,.27,.45),"pony":(.25,.16,.36),"curls":(.19,.35,.36)}[style])
     shoes=M(name+" shoes",(.16,.1,.07))
     ball(name+" shirt body",(0,0,1.88),(.46,.32,.64),sm,root)
     ball(name+" neck",(0,0,2.52),(.18,.17,.18),skin,root)
@@ -75,11 +76,14 @@ def child(name,x,y,shirt,hair,style,skin,dark):
 def bear(skin,dark):
     r=bpy.data.objects.new("Benji bear",None);bpy.context.collection.objects.link(r);fur=M("bear fur",(.34,.15,.06))
     ball("bear body",(0,0,1.7),(1.1,.78,1.35),fur,r);ball("bear head",(0,-.05,3.18),(.9,.7,.82),fur,r)
+    ball("bear belly",(0,-.69,1.64),(.64,.13,.78),M("bear belly fur",(.58,.34,.16)),r)
     for side in (-1,1):
         ball("bear ear",(side*.64,0,3.8),(.31,.22,.32),fur,r);ball("bear eye",(side*.28,-.7,3.32),(.08,.04,.11),dark,r)
         cyl("bear leg",(side*.53,0,.55),.31,1.1,fur,r)
     ball("bear muzzle",(0,-.68,3.02),(.43,.25,.3),M("muzzle",(.65,.38,.18)),r);ball("bear nose",(0,-.89,3.13),(.16,.1,.12),dark,r)
-    arm=cyl("bear wave arm",(.9,0,2.2),.26,1.35,fur,r);arm.rotation_euler[1]=math.radians(-25)
+    arm=pivot("bear shoulder",(.89,0,2.48),r)
+    ball("bear wave arm",(.24,0,-.35),(.31,.34,.61),fur,arm)
+    ball("bear waving paw",(.35,-.11,-.78),(.34,.35,.33),fur,arm)
     return dict(root=r,arm=arm)
 
 def world():
@@ -155,13 +159,13 @@ def animate(P,B,t,fps):
             K(root,b-int(.25*fps),scale=(1,1,.76));K(root,b+int(.35*fps),scale=(1,1,1))
 
 def camera(t,fps):
-    bpy.ops.object.camera_add(location=(0,-13,5.4));c=bpy.context.object;c.data.lens=43;bpy.context.scene.camera=c
+    bpy.ops.object.camera_add(location=(0,-16,5.4));c=bpy.context.object;c.data.lens=26;bpy.context.scene.camera=c
     target=bpy.data.objects.new("camera target",None);bpy.context.collection.objects.link(target)
     q=c.constraints.new("TRACK_TO");q.target=target;q.track_axis="TRACK_NEGATIVE_Z";q.up_axis="UP_Y"
     lines=t["lines"]
     reveal_line=next((line for line in lines if line.get("action")=="bear_reveal"),None)
     reveal_time=reveal_line["start"] if reveal_line else t["duration"]*.7
-    shots=[(1,(0,-13,5.4),(0,-2,2.2))]
+    shots=[(1,(0,-16,5.4),(0,-2,2.2))]
     for i,line in enumerate(lines):
         if i%3 and line.get("action") not in ("bear_reveal","point_track","point_bush"):
             continue
@@ -169,20 +173,20 @@ def camera(t,fps):
         progress=min(1,line["start"]/max(1,reveal_time))
         y=-5+12.2*progress
         if line.get("action")=="bear_reveal" or line["speaker"]=="Benji":
-            cp,tp=(.6,2.4,5.8),(2.5,11.7,2.25)
+            cp,tp=(.6,-1.5,5.8),(2.5,11.7,2.25)
         elif line.get("action") in ("point_track","point_claws","kneel_inspect"):
-            cp,tp=(-2.5,y-4,3.2),(0,y+2,.25)
+            cp,tp=(-2.5,y-8,3.5),(0,y+2,.25)
         elif i%2:
-            cp,tp=(2.8,y-6,4.2),(0,y+2,2.3)
+            cp,tp=(2.8,y-9,4.2),(0,y+2,2.3)
         else:
-            cp,tp=(-2.4,y-6,4.4),(0,y+2,2.3)
+            cp,tp=(-2.4,y-9,4.4),(0,y+2,2.3)
         shots.append((f,cp,tp))
-    shots.append((int(t["duration"]*fps),(0,1,5.7),(0,9,2.4)))
+    shots.append((int(t["duration"]*fps),(0,-2,5.7),(0,9,2.4)))
     for f,cp,tp in shots:K(c,int(f),cp);K(target,int(f),tp)
 
 def main():
     ep=json.loads(Path(sys.argv[sys.argv.index("--")+1]).read_text());t=json.loads(Path("build/timeline.json").read_text())
-    bpy.ops.wm.read_factory_settings(use_empty=True);skin=M("skin",(.95,.66,.47));dark=M("eyes",(.015,.012,.012));world()
+    bpy.ops.wm.read_factory_settings(use_empty=True);skin=M("skin",(.95,.53,.34));dark=M("eyes",(.015,.012,.012));world()
     P={"Luke":child("Luke",-1.1,-5,(.04,.36,.75),(.24,.1,.04),"swept",skin,dark),"Lydia":child("Lydia",0,-5.7,(.86,.15,.45),(.12,.05,.03),"pony",skin,dark),"Poppy":child("Poppy",1.1,-6.4,(1,.57,.03),(.55,.2,.04),"curls",skin,dark)}
     B=bear(skin,dark);fps=ep.get("fps",24);animate(P,B,t,fps);camera(t,fps)
     s=bpy.context.scene;s.sequence_editor_create()
@@ -190,7 +194,8 @@ def main():
     bpy.ops.object.light_add(type="SUN",location=(4,-4,12));bpy.context.object.data.energy=2.2
     bpy.ops.object.light_add(type="AREA",location=(-4,-4,9));bpy.context.object.data.energy=900;bpy.context.object.data.size=7
     if s.world is None:s.world=bpy.data.worlds.new("Episode World")
-    s.world.color=(.16,.43,.7);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=.55
+    s.world.color=(.68,.72,.76);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=.55
+    s.view_settings.view_transform="Standard";s.view_settings.look="Medium High Contrast"
     s.render.resolution_x,s.render.resolution_y=ep.get("resolution",[1080,1920]);s.render.resolution_percentage=50;s.render.fps=fps;s.frame_start=1;s.frame_end=int(t["duration"]*fps)
     sample=os.environ.get("SAMPLE_FRAME")
     if sample:
