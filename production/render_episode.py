@@ -120,29 +120,71 @@ def talk(p,start,dur,fps):
     for f in range(a,b+1,step):K(p["mouth"],f,scale=(1,1,2 if ((f-a)//step)%2 else .6))
 
 def animate(P,B,t,fps):
-    for n,off,x in (("Luke",0,-1.1),("Lydia",-.7,0),("Poppy",-1.4,1.1)):
-        walk(P[n],1,int(12*fps),-5+off,1.5+off,fps);walk(P[n],int(13*fps),int(34*fps),1.5+off,9+off,fps)
-    # Point to the tracks, kneel, and react.
-    K(P["Poppy"]["arms"][1],int(2*fps),rot=(math.radians(-55),0,math.radians(-35)));K(P["Poppy"]["arms"][1],int(5*fps),rot=(0,0,0))
-    K(P["Lydia"]["root"],int(5*fps),scale=(1,1,1));K(P["Lydia"]["root"],int(7*fps),scale=(1,1,.7));K(P["Lydia"]["root"],int(10*fps),scale=(1,1,1))
-    end=int(t["duration"]*fps);reveal=min(end-4*fps,int(41*fps))
-    K(B["root"],1,(3.4,13,0),scale=(.01,.01,.01));K(B["root"],reveal-fps,(3.4,13,0),scale=(.01,.01,.01));K(B["root"],reveal+fps,(3,11.2,0),scale=(1,1,1))
-    K(B["arm"],reveal+fps,rot=(0,math.radians(-25),0));K(B["arm"],reveal+2*fps,rot=(math.radians(30),math.radians(-55),math.radians(-15)));K(B["arm"],reveal+3*fps,rot=(math.radians(-20),math.radians(-55),math.radians(15)))
-    for line in t["lines"]:
-        if line["speaker"] in P:talk(P[line["speaker"]],line["start"],line["duration"],fps)
+    lines=t["lines"]
+    reveal_line=next((line for line in lines if line.get("action")=="bear_reveal"),None)
+    reveal=int((reveal_line["start"] if reveal_line else t["duration"]*.7)*fps)
+    # Each child has a different stride and spacing along the trail.
+    for n,off in (("Luke",0),("Lydia",-.65),("Poppy",-1.25)):
+        walk(P[n],1,max(2,reveal-2*fps),-5+off,7.2+off,fps)
+        root=P[n]["root"]
+        K(root,reveal-fps,rot=(0,0,0))
+        K(root,reveal+fps,rot=(0,0,math.radians(-12 if n=="Poppy" else 10)))
+        K(root,int(t["duration"]*fps),rot=(0,0,0))
 
-def camera(duration,fps):
+    # The bear walks out of the bushes. Never pop it into view by scaling it.
+    K(B["root"],1,(3.7,16,0));K(B["root"],reveal-fps,(3.7,16,0))
+    K(B["root"],reveal+3*fps,(2.7,11.7,0))
+    K(B["arm"],reveal+fps,rot=(0,math.radians(-25),0))
+    K(B["arm"],reveal+2*fps,rot=(math.radians(30),math.radians(-55),math.radians(-15)))
+    K(B["arm"],reveal+3*fps,rot=(math.radians(-20),math.radians(-55),math.radians(15)))
+    gesture_actions={"point_track","gesture_trail","show_clues","point_claws","point_bush","find_feather","walk_and_count"}
+    for line in lines:
+        name=line["speaker"]
+        if name not in P:continue
+        p=P[name];a=max(1,int(line["start"]*fps));b=int((line["start"]+line["duration"])*fps)
+        talk(p,line["start"],line["duration"],fps)
+        if line.get("action") in gesture_actions:
+            arm=p["arms"][1]
+            K(arm,a-1,rot=(0,0,0))
+            K(arm,a+int(.25*fps),rot=(math.radians(-65),0,math.radians(-12)))
+            K(arm,b,rot=(math.radians(-65),0,math.radians(-12)))
+            K(arm,b+int(.35*fps),rot=(0,0,0))
+        elif line.get("action")=="kneel_inspect":
+            root=p["root"]
+            K(root,a-1,scale=(1,1,1));K(root,a+int(.35*fps),scale=(1,1,.76))
+            K(root,b-int(.25*fps),scale=(1,1,.76));K(root,b+int(.35*fps),scale=(1,1,1))
+
+def camera(t,fps):
     bpy.ops.object.camera_add(location=(0,-13,5.4));c=bpy.context.object;c.data.lens=43;bpy.context.scene.camera=c
     target=bpy.data.objects.new("camera target",None);bpy.context.collection.objects.link(target)
     q=c.constraints.new("TRACK_TO");q.target=target;q.track_axis="TRACK_NEGATIVE_Z";q.up_axis="UP_Y"
-    shots=[(1,(0,-13,5.4),(0,-2,2.2)),(10*fps,(-2,-7,3),(0,1,.2)),(17*fps,(3,-4,4),(0,4,2.2)),(30*fps,(-3,1,3.2),(0,8,.3)),(41*fps,(0,2,5),(2,11,2.4)),(duration*fps,(0,1,5.7),(0,9,2.4))]
+    lines=t["lines"]
+    reveal_line=next((line for line in lines if line.get("action")=="bear_reveal"),None)
+    reveal_time=reveal_line["start"] if reveal_line else t["duration"]*.7
+    shots=[(1,(0,-13,5.4),(0,-2,2.2))]
+    for i,line in enumerate(lines):
+        if i%3 and line.get("action") not in ("bear_reveal","point_track","point_bush"):
+            continue
+        f=max(2,int(line["start"]*fps))
+        progress=min(1,line["start"]/max(1,reveal_time))
+        y=-5+12.2*progress
+        if line.get("action")=="bear_reveal" or line["speaker"]=="Benji":
+            cp,tp=(.6,2.4,5.8),(2.5,11.7,2.25)
+        elif line.get("action") in ("point_track","point_claws","kneel_inspect"):
+            cp,tp=(-2.5,y-4,3.2),(0,y+2,.25)
+        elif i%2:
+            cp,tp=(2.8,y-6,4.2),(0,y+2,2.3)
+        else:
+            cp,tp=(-2.4,y-6,4.4),(0,y+2,2.3)
+        shots.append((f,cp,tp))
+    shots.append((int(t["duration"]*fps),(0,1,5.7),(0,9,2.4)))
     for f,cp,tp in shots:K(c,int(f),cp);K(target,int(f),tp)
 
 def main():
     ep=json.loads(Path(sys.argv[sys.argv.index("--")+1]).read_text());t=json.loads(Path("build/timeline.json").read_text())
     bpy.ops.wm.read_factory_settings(use_empty=True);skin=M("skin",(.95,.66,.47));dark=M("eyes",(.015,.012,.012));world()
     P={"Luke":child("Luke",-1.1,-5,(.04,.36,.75),(.24,.1,.04),"swept",skin,dark),"Lydia":child("Lydia",0,-5.7,(.86,.15,.45),(.12,.05,.03),"pony",skin,dark),"Poppy":child("Poppy",1.1,-6.4,(1,.57,.03),(.55,.2,.04),"curls",skin,dark)}
-    B=bear(skin,dark);fps=ep.get("fps",24);animate(P,B,t,fps);camera(t["duration"],fps)
+    B=bear(skin,dark);fps=ep.get("fps",24);animate(P,B,t,fps);camera(t,fps)
     s=bpy.context.scene;s.sequence_editor_create()
     for i,line in enumerate(t["lines"]):s.sequence_editor.sequences.new_sound(f"voice{i}",line["audio"],1,int(line["start"]*fps)+1)
     bpy.ops.object.light_add(type="SUN",location=(4,-4,12));bpy.context.object.data.energy=2.2
@@ -155,7 +197,7 @@ def main():
         s.frame_set(int(sample));s.render.resolution_percentage=35
         s.render.image_settings.file_format="PNG"
         Path("output").mkdir(exist_ok=True)
-        s.render.filepath="//output/sample.png"
+        s.render.filepath=f"//output/sample-{sample}.png"
         bpy.ops.render.render(write_still=True)
         return
     s.render.image_settings.file_format="FFMPEG";s.render.ffmpeg.format="MPEG4";s.render.ffmpeg.codec="H264";s.render.ffmpeg.audio_codec="AAC"
