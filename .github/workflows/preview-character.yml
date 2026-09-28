@@ -1,0 +1,29 @@
+name: Preview Softer Characters
+on:
+  push:
+    branches: [codex/softer-episode-characters]
+    paths:
+      - '.github/workflows/preview-character.yml'
+      - 'production/render_episode.py'
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender libegl1 libgl1 libglx-mesa0 libx11-6 libxi6
+      - name: Render sample frame
+        run: |
+          mkdir -p build output
+          echo '{"duration":60,"lines":[]}' > build/timeline.json
+          SAMPLE_FRAME=48 blender --background --python production/render_episode.py -- production/episode-01.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: softer-character-sample
+          path: output/sample.png
+          retention-days: 7
