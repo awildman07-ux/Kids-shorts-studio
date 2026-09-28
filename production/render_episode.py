@@ -3,7 +3,9 @@ from pathlib import Path
 import bpy
 
 def M(name, c):
-    m=bpy.data.materials.new(name); m.diffuse_color=(*c,1); return m
+    m=bpy.data.materials.new(name); m.diffuse_color=(*c,1); m.use_nodes=True
+    shader=m.node_tree.nodes.get("Principled BSDF"); shader.inputs["Base Color"].default_value=(*c,1); shader.inputs["Roughness"].default_value=.82
+    return m
 def K(o,f,loc=None,rot=None,scale=None):
     if loc is not None:o.location=loc;o.keyframe_insert("location",frame=f)
     if rot is not None:o.rotation_euler=rot;o.keyframe_insert("rotation_euler",frame=f)
@@ -68,8 +70,6 @@ def child(name,x,y,shirt,hair,style,skin,dark):
         ball(name+f" shoe{side}",(0,-.13,-1.07),(.24,.34,.15),shoes,l)
         legs.append(l)
     ball(name+" backpack",(0,.31,1.94),(.36,.15,.45),M(name+" pack",(.66,.28,.1)),root)
-    for side in (-1,1):
-        ball(name+f" pack strap{side}",(side*.31,-.22,2.05),(.075,.07,.39),M(name+f" strap mat{side}",(.44,.2,.08)),root)
     return dict(root=root,mouth=mouth,arms=arms,legs=legs)
 
 def bear(skin,dark):
