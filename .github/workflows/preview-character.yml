@@ -1,0 +1,39 @@
+name: Preview Softer Characters
+on:
+  push:
+    branches: [codex/softer-episode-characters]
+    paths:
+      - '.github/workflows/preview-character.yml'
+      - 'production/render_episode.py'
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender libegl1 libgl1 libglx-mesa0 libx11-6 libxi6
+      - name: Render story frames
+        run: |
+          mkdir -p build output
+          python - <<'PY'
+          import json, wave
+          episode=json.load(open('production/episode-01.json'))
+          with wave.open('build/silence.wav','wb') as wav:
+              wav.setnchannels(1); wav.setsampwidth(2); wav.setframerate(24000)
+              wav.writeframes(bytes(24000*2))
+          lines=[dict(line,start=1+i*4,duration=3,audio='build/silence.wav') for i,line in enumerate(episode['lines'])]
+          json.dump(dict(duration=65,lines=lines),open('build/timeline.json','w'))
+          PY
+          for frame in 48 900 1250; do
+            SAMPLE_FRAME=$frame blender --background --python production/render_episode.py -- production/episode-01.json
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: episode-story-frames
+          path: output/sample-*.png
+          retention-days: 7
