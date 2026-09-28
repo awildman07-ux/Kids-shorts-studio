@@ -87,19 +87,19 @@ def bear(skin,dark):
     return dict(root=r,arm=arm)
 
 def world():
-    cube("ground",(0,12,-.22),(14,34,.2),M("grass",(.08,.45,.16)),b=.03)
+    cube("ground",(0,10,-.22),(100,110,.2),M("grass",(.08,.45,.16)),b=.03)
     trail=M("continuous earth trail",(.52,.35,.19))
     verts=[];faces=[]
-    for i in range(45):
-        y=-7+i*.8;center=math.sin((y+6)*.18)*.65
+    for i in range(105):
+        y=-25+i*.8;center=math.sin((y+6)*.18)*.65
         verts.extend([(center-1.5,y,.016),(center+1.5,y,.016)])
         if i:faces.append((2*i-2,2*i-1,2*i+1,2*i))
     mesh=bpy.data.meshes.new("curving trail mesh");mesh.from_pydata(verts,[],faces);mesh.update()
     path=bpy.data.objects.new("continuous forest path",mesh);bpy.context.collection.objects.link(path);mesh.materials.append(trail)
     for f in mesh.polygons:f.use_smooth=True
     bark=M("bark",(.27,.12,.04));leaf=M("leaves",(.04,.34,.1))
-    for i in range(24):
-        side=-1 if i%2==0 else 1;y=-5+(i//2)*3.4;x=side*(4.2+(i%3)*.5)
+    for i in range(42):
+        side=-1 if i%2==0 else 1;y=-19+(i//2)*3.4;x=side*(4.2+(i%3)*.5)
         cyl("tree",(x,y,1.7),.28,3.4,bark);ball("canopy",(x,y,4),(1.2,.95,1.3),leaf)
     mud=M("tracks",(.23,.12,.06))
     for i in range(9):
@@ -194,7 +194,7 @@ def main():
     bpy.ops.object.light_add(type="SUN",location=(4,-4,12));bpy.context.object.data.energy=2.2
     bpy.ops.object.light_add(type="AREA",location=(-4,-4,9));bpy.context.object.data.energy=900;bpy.context.object.data.size=7
     if s.world is None:s.world=bpy.data.worlds.new("Episode World")
-    s.world.color=(.68,.72,.76);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=.55
+    s.world.color=(.32,.55,.78);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=.55
     s.view_settings.view_transform="Standard";s.view_settings.look="Medium High Contrast"
     s.render.resolution_x,s.render.resolution_y=ep.get("resolution",[1080,1920]);s.render.resolution_percentage=50;s.render.fps=fps;s.frame_start=1;s.frame_end=int(t["duration"]*fps)
     sample=os.environ.get("SAMPLE_FRAME")
