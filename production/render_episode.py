@@ -50,18 +50,18 @@ def child(name,x,y,shirt,hair,style,skin,dark):
             ball(name+" hair tie",(.47,.23,3.31),(.12,.12,.08),M(name+" hair tie mat",shirt),root)
     white=M(name+" whites",(1,.98,.92)); mouthmat=M(name+" mouth",(.45,.04,.08))
     for side in (-1,1):
-        ball(name+f" eye{side}",(side*.18,-.425,3.10),(.092,.037,.115),white,root)
-        ball(name+f" pupil{side}",(side*.18,-.463,3.09),(.045,.019,.069),dark,root)
-        ball(name+f" eyebrow{side}",(side*.18,-.422,3.32),(.12,.018,.025),hm,root)
-        ball(name+f" cheek{side}",(side*.30,-.382,2.91),(.095,.022,.04),M(name+f" blush{side}",(.78,.38,.32)),root)
+        ball(name+f" eye{side}",(side*.18,-.425,3.10),(.068,.03,.085),white,root)
+        ball(name+f" pupil{side}",(side*.18,-.463,3.09),(.032,.015,.05),dark,root)
+        ball(name+f" eyebrow{side}",(side*.18,-.422,3.32),(.10,.012,.018),hm,root)
+        ball(name+f" cheek{side}",(side*.30,-.382,2.91),(.07,.015,.03),M(name+f" blush{side}",(.78,.38,.32)),root)
     ball(name+" nose",(0,-.46,3.02),(.055,.055,.05),skin,root)
-    mouth=ball(name+" talking mouth",(0,-.449,2.84),(.12,.018,.035),mouthmat,root)
+    mouth=ball(name+" talking mouth",(0,-.449,2.84),(.085,.013,.025),mouthmat,root)
     arms=[];legs=[]
     for side in (-1,1):
         a=pivot(name+f" shoulder{side}",(side*.46,0,2.28),root)
-        ball(name+f" sleeve{side}",(side*.08,0,-.09),(.19,.20,.22),sm,a)
-        ball(name+f" arm{side}",(side*.08,0,-.37),(.135,.13,.35),skin,a)
-        ball(name+f" hand{side}",(side*.08,0,-.67),(.15,.13,.16),skin,a)
+        ball(name+f" sleeve{side}",(side*.015,0,-.10),(.23,.22,.29),sm,a)
+        ball(name+f" arm{side}",(side*.015,0,-.40),(.13,.13,.30),skin,a)
+        ball(name+f" hand{side}",(side*.015,0,-.66),(.14,.13,.16),skin,a)
         arms.append(a)
         l=pivot(name+f" hip{side}",(side*.22,0,1.39),root)
         ball(name+f" pantleg{side}",(0,0,-.52),(.20,.20,.58),pants,l)
@@ -140,7 +140,7 @@ def camera(duration,fps):
 
 def main():
     ep=json.loads(Path(sys.argv[sys.argv.index("--")+1]).read_text());t=json.loads(Path("build/timeline.json").read_text())
-    bpy.ops.wm.read_factory_settings(use_empty=True);skin=M("skin",(.72,.42,.25));dark=M("eyes",(.015,.012,.012));world()
+    bpy.ops.wm.read_factory_settings(use_empty=True);skin=M("skin",(.95,.66,.47));dark=M("eyes",(.015,.012,.012));world()
     P={"Luke":child("Luke",-1.1,-5,(.04,.36,.75),(.24,.1,.04),"swept",skin,dark),"Lydia":child("Lydia",0,-5.7,(.86,.15,.45),(.12,.05,.03),"pony",skin,dark),"Poppy":child("Poppy",1.1,-6.4,(1,.57,.03),(.55,.2,.04),"curls",skin,dark)}
     B=bear(skin,dark);fps=ep.get("fps",24);animate(P,B,t,fps);camera(t["duration"],fps)
     s=bpy.context.scene;s.sequence_editor_create()
@@ -148,7 +148,7 @@ def main():
     bpy.ops.object.light_add(type="SUN",location=(4,-4,12));bpy.context.object.data.energy=2.2
     bpy.ops.object.light_add(type="AREA",location=(-4,-4,9));bpy.context.object.data.energy=900;bpy.context.object.data.size=7
     if s.world is None:s.world=bpy.data.worlds.new("Episode World")
-    s.world.color=(.16,.43,.7);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=1.3
+    s.world.color=(.16,.43,.7);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=.55
     s.render.resolution_x,s.render.resolution_y=ep.get("resolution",[1080,1920]);s.render.resolution_percentage=50;s.render.fps=fps;s.frame_start=1;s.frame_end=int(t["duration"]*fps)
     sample=os.environ.get("SAMPLE_FRAME")
     if sample:
