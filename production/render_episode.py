@@ -1,4 +1,4 @@
-import json, math, sys
+import json, math, os, sys
 from pathlib import Path
 import bpy
 
@@ -13,35 +13,63 @@ def cube(n,p,s,m,parent=None,b=.12):
     bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
     x=o.modifiers.new("soft","BEVEL");x.width=b;x.segments=3;o.data.materials.append(m);o.parent=parent;return o
 def ball(n,p,s,m,parent=None):
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=20,ring_count=12,location=p)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=20,location=p)
     o=bpy.context.object;o.name=n;o.scale=s;bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-    o.data.materials.append(m);o.parent=parent;return o
+    o.data.materials.append(m);o.parent=parent
+    for face in o.data.polygons:face.use_smooth=True
+    return o
 def cyl(n,p,r,d,m,parent=None):
-    bpy.ops.mesh.primitive_cylinder_add(vertices=16,radius=r,depth=d,location=p)
-    o=bpy.context.object;o.name=n;o.data.materials.append(m);o.parent=parent;return o
+    bpy.ops.mesh.primitive_cylinder_add(vertices=24,radius=r,depth=d,location=p)
+    o=bpy.context.object;o.name=n;o.data.materials.append(m);o.parent=parent
+    bevel=o.modifiers.new("rounded ends","BEVEL");bevel.width=.12;bevel.segments=3
+    o.modifiers.new("weighted normals","WEIGHTED_NORMAL")
+    return o
+def pivot(n,p,parent):
+    o=bpy.data.objects.new(n,None);bpy.context.collection.objects.link(o)
+    o.parent=parent;o.location=p
+    return o
 
 def child(name,x,y,shirt,hair,style,skin,dark):
     root=bpy.data.objects.new(name,None);bpy.context.collection.objects.link(root);root.location=(x,y,0)
     sm=M(name+" shirt",shirt); hm=M(name+" hair",hair); pants=M(name+" pants",(.12,.28,.48))
-    cube(name+" torso",(0,0,2.05),(.6,.34,.7),sm,root,.2)
-    ball(name+" head",(0,0,3.25),(.62,.54,.7),skin,root)
+    shoes=M(name+" shoes",(.16,.1,.07))
+    ball(name+" shirt body",(0,0,1.88),(.46,.32,.64),sm,root)
+    ball(name+" neck",(0,0,2.52),(.18,.17,.18),skin,root)
+    ball(name+" head",(0,-.03,3.02),(.49,.43,.55),skin,root)
+    for side in (-1,1):
+        ball(name+f" ear{side}",(side*.49,-.015,3.01),(.095,.07,.15),skin,root)
     if style=="curls":
-        for i,px in enumerate((-.45,-.22,0,.22,.45)):ball(name+f" curl{i}",(px,.02,3.85-abs(px)*.15),(.23,.23,.25),hm,root)
+        for i,px in enumerate((-.37,-.18,0,.18,.37)):
+            ball(name+f" curl{i}",(px,.025,3.52-abs(px)*.12),(.16,.19,.16),hm,root)
+        ball(name+" back hair",(0,.2,3.13),(.47,.27,.42),hm,root)
     else:
-        ball(name+" haircap",(0,.05,3.72),(.61,.53,.32),hm,root)
-        if style=="pony":ball(name+" ponytail",(.57,.16,3.35),(.23,.2,.43),hm,root)
+        ball(name+" hair crown",(0,.12,3.43),(.48,.39,.22),hm,root)
+        ball(name+" side fringe",(-.25,-.29,3.43),(.26,.12,.12),hm,root)
+        if style=="pony":
+            ball(name+" ponytail",(.43,.23,3.08),(.17,.18,.32),hm,root)
+            ball(name+" hair tie",(.47,.23,3.31),(.12,.12,.08),M(name+" hair tie mat",shirt),root)
     white=M(name+" whites",(1,.98,.92)); mouthmat=M(name+" mouth",(.45,.04,.08))
     for side in (-1,1):
-        ball(name+f" eye{side}",(side*.22,-.51,3.37),(.13,.06,.16),white,root)
-        ball(name+f" pupil{side}",(side*.22,-.565,3.37),(.06,.025,.08),dark,root)
-    mouth=ball(name+" talking mouth",(0,-.57,3.08),(.17,.025,.065),mouthmat,root)
+        ball(name+f" eye{side}",(side*.18,-.425,3.10),(.092,.037,.115),white,root)
+        ball(name+f" pupil{side}",(side*.18,-.463,3.09),(.045,.019,.069),dark,root)
+        ball(name+f" eyebrow{side}",(side*.18,-.422,3.32),(.12,.018,.025),hm,root)
+        ball(name+f" cheek{side}",(side*.30,-.382,2.91),(.095,.022,.04),M(name+f" blush{side}",(.78,.38,.32)),root)
+    ball(name+" nose",(0,-.46,3.02),(.055,.055,.05),skin,root)
+    mouth=ball(name+" talking mouth",(0,-.449,2.84),(.12,.018,.035),mouthmat,root)
     arms=[];legs=[]
     for side in (-1,1):
-        a=cyl(name+f" arm{side}",(side*.77,0,2.2),.14,1.1,skin,root);a.rotation_euler[1]=math.radians(-8*side);arms.append(a)
-        ball(name+f" hand{side}",(side*.86,0,1.62),(.17,.17,.19),skin,root)
-        l=cyl(name+f" leg{side}",(side*.3,0,.82),.18,1.3,pants,root);legs.append(l)
-        cube(name+f" boot{side}",(side*.3,-.12,.15),(.24,.34,.15),M(name+f" bootmat{side}",(.16,.1,.07)),root,.08)
-    cube(name+" backpack",(0,.36,2.1),(.45,.18,.5),M(name+" pack",(.86,.35,.08)),root,.16)
+        a=pivot(name+f" shoulder{side}",(side*.46,0,2.28),root)
+        ball(name+f" sleeve{side}",(side*.08,0,-.09),(.19,.20,.22),sm,a)
+        ball(name+f" arm{side}",(side*.08,0,-.37),(.135,.13,.35),skin,a)
+        ball(name+f" hand{side}",(side*.08,0,-.67),(.15,.13,.16),skin,a)
+        arms.append(a)
+        l=pivot(name+f" hip{side}",(side*.22,0,1.39),root)
+        ball(name+f" pantleg{side}",(0,0,-.52),(.20,.20,.58),pants,l)
+        ball(name+f" shoe{side}",(0,-.13,-1.07),(.24,.34,.15),shoes,l)
+        legs.append(l)
+    ball(name+" backpack",(0,.31,1.94),(.36,.15,.45),M(name+" pack",(.66,.28,.1)),root)
+    for side in (-1,1):
+        ball(name+f" pack strap{side}",(side*.31,-.22,2.05),(.075,.07,.39),M(name+f" strap mat{side}",(.44,.2,.08)),root)
     return dict(root=root,mouth=mouth,arms=arms,legs=legs)
 
 def bear(skin,dark):
@@ -56,8 +84,15 @@ def bear(skin,dark):
 
 def world():
     cube("ground",(0,12,-.22),(14,34,.2),M("grass",(.08,.45,.16)),b=.03)
-    trail=M("trail",(.62,.4,.19))
-    for i in range(17):cube("trail",(math.sin(i*.5)*1.1,i*2.4-6,.01),(2.2,1.5,.04),trail,b=.2)
+    trail=M("continuous earth trail",(.52,.35,.19))
+    verts=[];faces=[]
+    for i in range(45):
+        y=-7+i*.8;center=math.sin((y+6)*.18)*.65
+        verts.extend([(center-1.5,y,.016),(center+1.5,y,.016)])
+        if i:faces.append((2*i-2,2*i-1,2*i+1,2*i))
+    mesh=bpy.data.meshes.new("curving trail mesh");mesh.from_pydata(verts,[],faces);mesh.update()
+    path=bpy.data.objects.new("continuous forest path",mesh);bpy.context.collection.objects.link(path);mesh.materials.append(trail)
+    for f in mesh.polygons:f.use_smooth=True
     bark=M("bark",(.27,.12,.04));leaf=M("leaves",(.04,.34,.1))
     for i in range(24):
         side=-1 if i%2==0 else 1;y=-5+(i//2)*3.4;x=side*(4.2+(i%3)*.5)
@@ -72,9 +107,12 @@ def world():
         for q in range(3):ball("berry",(x-.3+q*.3,11.35,1.1+(q%2)*.25),(.09,.07,.09),berry)
 
 def walk(p,a,b,y1,y2,fps):
-    r=p["root"];K(r,a,(r.location.x,y1,0));K(r,b,(r.location.x,y2,0));step=max(3,int(fps*.27))
-    for f in range(a,b+1,step):
-        ph=((f-a)//step)%2;r.location.z=.07 if ph else 0;r.keyframe_insert("location",frame=f)
+    r=p["root"];step=max(3,int(fps*.27))
+    for f in sorted(set(list(range(a,b+1,step))+[b])):
+        ph=((f-a)//step)%2
+        progress=(f-a)/max(1,b-a)
+        r.location=(r.location.x,y1+(y2-y1)*progress,.035 if ph else 0)
+        r.keyframe_insert("location",frame=f)
         for j,o in enumerate(p["legs"]):o.rotation_euler[0]=math.radians(18 if (ph+j)%2 else -18);o.keyframe_insert("rotation_euler",frame=f)
         for j,o in enumerate(p["arms"]):o.rotation_euler[0]=math.radians(-18 if (ph+j)%2 else 18);o.keyframe_insert("rotation_euler",frame=f)
 def talk(p,start,dur,fps):
@@ -112,6 +150,14 @@ def main():
     if s.world is None:s.world=bpy.data.worlds.new("Episode World")
     s.world.color=(.16,.43,.7);s.render.engine="BLENDER_EEVEE";s.eevee.use_gtao=True;s.eevee.gtao_factor=1.3
     s.render.resolution_x,s.render.resolution_y=ep.get("resolution",[1080,1920]);s.render.resolution_percentage=50;s.render.fps=fps;s.frame_start=1;s.frame_end=int(t["duration"]*fps)
+    sample=os.environ.get("SAMPLE_FRAME")
+    if sample:
+        s.frame_set(int(sample));s.render.resolution_percentage=35
+        s.render.image_settings.file_format="PNG"
+        Path("output").mkdir(exist_ok=True)
+        s.render.filepath="//output/sample.png"
+        bpy.ops.render.render(write_still=True)
+        return
     s.render.image_settings.file_format="FFMPEG";s.render.ffmpeg.format="MPEG4";s.render.ffmpeg.codec="H264";s.render.ffmpeg.audio_codec="AAC"
     Path("output").mkdir(exist_ok=True);s.render.filepath="//output/episode.mp4";bpy.ops.render.render(animation=True)
 if __name__=="__main__":main()
